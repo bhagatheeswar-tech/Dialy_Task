@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>My Chess &amp; Study Planner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;800&display=swap">
+<style>
+:root{--ink:#e9eee8;--muted:#9db0a8;--glass:rgba(18,31,29,.78);--line:rgba(255,255,255,.1);--sq:#7fa383;--amber:#e8b543;--red:#ef8a7e;color-scheme:dark}
+*{box-sizing:border-box}
+html{background:#0d1816}
+body{margin:0;min-height:100vh;color:var(--ink);font-family:'Bricolage Grotesque',system-ui,sans-serif;line-height:1.4;padding-bottom:40px;
+ background:radial-gradient(ellipse at 15% 0%,rgba(127,163,131,.30),transparent 55%),radial-gradient(ellipse at 95% 100%,rgba(232,181,67,.16),transparent 50%),#0d1816;background-attachment:fixed}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.05;background:conic-gradient(#fff 25%,transparent 0 50%,#fff 0 75%,transparent 0) 0 0/80px 80px}
+body::after{content:"♞";position:fixed;right:-2vmin;bottom:-8vmin;font-size:55vmin;line-height:1;color:#fff;opacity:.04;pointer-events:none}
+header,main{max-width:1120px;margin:0 auto;padding:0 14px;position:relative;z-index:1}
+header{padding-top:max(16px,env(safe-area-inset-top));display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+h1{font-size:1.7rem;font-weight:800;margin:0;letter-spacing:-.02em}
+.pill{background:var(--amber);color:#1b1b12;font-weight:800;border-radius:99px;padding:3px 12px;font-size:.9rem;margin-left:8px;vertical-align:middle}
+.sub{font-size:.8rem;color:var(--muted)}
+nav{display:flex;gap:6px;margin:12px 0;flex-wrap:wrap}
+nav button{padding:8px 16px;border:1px solid var(--line);background:var(--glass);color:var(--ink);font:inherit;font-weight:600;cursor:pointer;border-radius:99px}
+nav button[aria-selected=true]{background:var(--sq);color:#10201a;border-color:var(--sq)}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
+section{display:none}section.on{display:grid;gap:12px;grid-template-columns:minmax(0,1.55fr) minmax(280px,1fr);align-items:start}
+.col{display:grid;gap:12px;min-width:0}
+@media(max-width:880px){section.on{grid-template-columns:1fr}}
+.card{background:var(--glass);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+h2{font-size:1rem;margin:0 0 8px;font-weight:600}
+form{display:grid;grid-template-columns:repeat(auto-fit,minmax(105px,1fr));gap:8px;align-items:end}
+label{display:flex;flex-direction:column;font-size:.75rem;color:var(--muted);gap:3px}
+input,select{font:inherit;padding:7px 8px;border:1px solid var(--line);border-radius:6px;background:rgba(255,255,255,.07);color:var(--ink);width:100%}
+.btn{font:inherit;font-weight:600;padding:8px 14px;border:0;border-radius:6px;background:var(--sq);color:#10201a;cursor:pointer}
+.btn.ghost{background:transparent;color:var(--muted);border:1px solid var(--line);padding:3px 9px;font-weight:400;font-size:.8rem}
+.btn:disabled{opacity:.35;cursor:default}
+.datebar{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.datebar strong{font-size:1.05rem}
+.prog{height:8px;background:rgba(255,255,255,.1);border-radius:4px;overflow:hidden;margin:4px 0 10px}
+.prog i{display:block;height:100%;background:linear-gradient(90deg,var(--sq),var(--amber));transition:width .3s}
+.row{display:grid;grid-template-columns:78px 1fr auto;gap:10px;align-items:center;padding:8px 10px;border:1px solid var(--line);border-left:5px solid var(--sq);border-radius:8px;background:rgba(255,255,255,.04);margin-bottom:6px}
+.row.task{border-left-color:#b9c7c1}.row.chess{border-left-color:var(--amber)}.row.late{border-left-color:var(--red)}
+.row.now{box-shadow:0 0 0 2px var(--amber);background:rgba(232,181,67,.1)}
+.row.done .t{text-decoration:line-through;opacity:.5}
+.time{font-weight:600;font-variant-numeric:tabular-nums;font-size:.85rem;line-height:1.25}
+.chk{width:24px;height:24px;accent-color:var(--sq);cursor:pointer}
+.warn{color:var(--red);font-weight:600}
+.li{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--line)}
+.li:last-child{border:0}
+.empty{color:var(--muted);font-size:.9rem}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.big{font-size:1.9rem;font-weight:800;line-height:1}
+.bars{display:flex;gap:6px;align-items:flex-end;height:60px;margin-top:6px}
+.bars div{flex:1;text-align:center;font-size:.7rem;color:var(--muted)}
+.bars span{display:block;border-radius:4px 4px 0 0;background:rgba(255,255,255,.12);height:6px;margin-bottom:2px}
+.bars span.on{background:var(--amber);height:42px}
+svg.spark{width:100%;height:auto;display:block}
+.tag{font-size:.7rem;border:1px solid var(--line);border-radius:99px;padding:0 7px;color:var(--muted);margin-left:6px}
+.go{padding:6px 12px}
+.lvl{display:flex;align-items:center;gap:8px;font-size:.8rem;color:var(--muted);margin-top:4px}
+.lvl .prog{flex:1;min-width:90px;max-width:180px;margin:0}
+.badges{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:6px}
+.bdg{border:1px solid var(--line);border-radius:8px;padding:6px 8px;font-size:.72rem;opacity:.4;color:var(--muted)}
+.bdg strong{color:var(--ink);font-size:.8rem}
+.bdg.on{opacity:1;border-color:var(--amber);background:rgba(232,181,67,.1)}
+#focus{position:fixed;inset:0;z-index:50;background:radial-gradient(ellipse at 50% 0%,#1d3b33,#0b1412);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;text-align:center;padding:20px}
+#focus[hidden]{display:none}
+#ftime{font-size:clamp(3.5rem,18vw,7rem);font-weight:800;font-variant-numeric:tabular-nums;line-height:1}
+.fbtns{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;max-width:460px}
+.btn.amber{background:var(--amber)}.btn.red{background:var(--red)}
+#toasts{position:fixed;top:10px;left:10px;right:10px;z-index:60;display:grid;gap:8px;max-width:460px;margin:0 auto}
+.toast{background:#223a35;border:1px solid var(--amber);border-radius:10px;padding:10px 12px;box-shadow:0 6px 20px rgba(0,0,0,.45);cursor:pointer}
+</style>
+</head>
+<body>
+<header>
+  <div><h1><span id="title">My Planner</span><span class="pill" id="rating"></span></h1><div class="lvl"><b id="lvltxt"></b><div class="prog"><i id="lvlbar" style="width:0"></i></div><span id="xptxt"></span></div></div>
+  <div class="sub" id="today-label"></div>
+</header>
+<main>
+<nav role="tablist">
+  <button role="tab" data-tab="today" aria-selected="true">Today</button>
+  <button role="tab" data-tab="tasks" aria-selected="false">Tasks</button>
+  <button role="tab" data-tab="timetable" aria-selected="false">Timetable</button>
+  <button role="tab" data-tab="chess" aria-selected="false">Chess</button>
+  <button role="tab" data-tab="settings" aria-selected="false">Settings</button>
+</nav>
+
+<section id="today" class="on">
+  <div class="col">
+    <div class="card">
+      <form id="qform">
+        <label style="grid-column:span 2">Quick add task<input id="q-title" required placeholder="Maths assignment"></label>
+        <label>Deadline<input id="q-due" type="date" required></label>
+        <label>Minutes<input id="q-min" type="number" min="10" max="180" step="5" value="45" required></label>
+        <label>Type<select id="q-type"><option value="college">College</option><option value="chess">Chess study</option><option value="other">Other</option></select></label>
+        <button class="btn" type="submit">Add</button>
+      </form>
+    </div>
+    <div class="card">
+      <div class="datebar">
+        <button class="btn ghost" id="prev" aria-label="Previous day">‹ Prev</button>
+        <strong id="datetxt"></strong>
+        <button class="btn ghost" id="next" aria-label="Next day">Next ›</button>
+      </div>
+      <div class="sub" id="progtxt" style="margin-top:6px"></div>
+      <div class="prog"><i id="progbar" style="width:0"></i></div>
+      <div id="schedule"></div>
+      <div id="unplaced"></div>
+      <div id="donelist"></div>
+    </div>
+  </div>
+  <aside class="col" id="side"></aside>
+</section>
+
+<section id="tasks">
+  <div class="card"><h2>Pending tasks</h2><div id="tasklist"></div></div>
+  <div class="card"><h2>Completed</h2><div id="donetasks"></div></div>
+</section>
+
+<section id="timetable">
+  <div class="card">
+    <h2>Add a class</h2>
+    <form id="classform">
+      <label>Subject<input id="c-name" required placeholder="Mathematics"></label>
+      <label>Day<select id="c-day"><option value="1">Monday</option><option value="2">Tuesday</option><option value="3">Wednesday</option><option value="4">Thursday</option><option value="5">Friday</option><option value="6">Saturday</option><option value="0">Sunday</option></select></label>
+      <label>Starts<input id="c-start" type="time" required value="09:00"></label>
+      <label>Ends<input id="c-end" type="time" required value="09:50"></label>
+      <button class="btn" type="submit">Add class</button>
+    </form>
+  </div>
+  <div class="card"><h2>Weekly timetable</h2><div id="classlist"></div></div>
+</section>
+
+<section id="chess">
+  <div class="col">
+    <div class="card">
+      <h2>Rating progress</h2>
+      <div id="ratingchart"></div>
+      <form id="rform" style="margin-top:10px">
+        <label>New rating<input id="r-val" type="number" min="0" max="3000" required></label>
+        <label>Date<input id="r-date" type="date" required></label>
+        <label>Target rating<input id="r-target" type="number" min="0" max="3000"></label>
+        <button class="btn" type="submit">Log rating</button>
+      </form>
+    </div>
+    <div class="card"><h2>Rating history</h2><div id="ratinglist"></div></div>
+  </div>
+  <div class="col">
+    <div class="card">
+      <h2>Add a tournament</h2>
+      <form id="eform">
+        <label style="grid-column:span 2">Name<input id="e-name" required placeholder="State Rapid Open"></label>
+        <label>Date<input id="e-date" type="date" required></label>
+        <button class="btn" type="submit">Add</button>
+      </form>
+    </div>
+    <div class="card"><h2>Upcoming tournaments</h2><div id="eventlist"></div></div>
+  </div>
+</section>
+
+<section id="settings">
+  <div class="col">
+    <div class="card">
+      <h2>Settings</h2>
+      <form id="setform">
+        <label>Your name<input id="s-name" placeholder="Your name"></label>
+        <label>Day starts<input id="s-ws" type="time"></label>
+        <label>Day ends<input id="s-we" type="time"></label>
+        <label>Chess training (min/day)<input id="s-chess" type="number" min="0" max="480" step="15"></label>
+        <label>Chess time starts at<input id="s-cstart" type="time"></label>
+        <label>Max task time per day (min)<input id="s-cap" type="number" min="30" max="600" step="15"></label>
+        <button class="btn" type="submit" style="grid-column:1/-1;padding:11px">Save settings</button>
+      </form>
+      <div id="savemsg" class="sub" role="status" style="margin-top:8px;font-weight:600"></div>
+      <div class="sub">Changes also save automatically.</div>
+    </div>
+  </div>
+  <div class="col">
+    <div class="card">
+      <h2>Reminders</h2>
+      <div class="sub" style="margin-bottom:8px">You get alerts 10 and 5 minutes before each block, when it starts, and when it ends, plus check-ins during focus sessions. Keep this page open (or installed on your home screen) for them to work.</div>
+      <button class="btn" id="en-notif" type="button">Enable reminders &amp; sound</button>
+      <div class="sub" id="notif-status" style="margin-top:6px"></div>
+    </div>
+    <div class="card"><h2>Backup</h2>
+      <div class="sub" style="margin-bottom:8px">Your data lives in this browser only. Download a backup now and then, and restore it on another device.</div>
+      <button class="btn" id="exp" type="button">Download backup</button>
+      <label style="margin-top:10px">Restore from backup<input id="imp" type="file" accept=".json,application/json"></label>
+    </div>
+  </div>
+</section>
+</main>
+<div id="focus" hidden role="dialog" aria-modal="true" aria-label="Focus session">
+  <div class="sub" id="fkind"></div>
+  <h2 id="ftitle" style="font-size:1.5rem;margin:0"></h2>
+  <div id="ftime">00:00</div>
+  <div class="prog" style="width:min(420px,90%)"><i id="fbar" style="width:0"></i></div>
+  <div class="sub" id="fstat"></div>
+  <div id="fpanel" class="fbtns"></div>
+</div>
+<div id="toasts" aria-live="polite"></div>
+
+<script>
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const DAYS = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+const BUFFER = 10;
+const toMin = t => { const [h,m] = t.split(':').map(Number); return h*60+m; };
+const fmt = m => { const h = Math.floor(m/60); return ((h+11)%12+1)+':'+String(m%60).padStart(2,'0')+(h>=12?' PM':' AM'); };
+const ds = d => d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+const parse = s => { const [y,m,d] = s.split('-').map(Number); return new Date(y,m-1,d); };
+const addDays = (d,n) => { const x = new Date(d); x.setDate(x.getDate()+n); return x; };
+const uid = () => Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+const short = s => parse(s).toLocaleDateString('en-IN',{day:'numeric',month:'short'});
+const daysTo = s => Math.round((parse(s)-parse(ds(new Date())))/864e5);
+
+const D = {lock:{},fired:{},active:null,game:{xp:0,sessions:0,mins:0,clean:0,best:0,badges:{},log:[]},classes:[],tasks:[],chessDone:{},ratings:[],events:[],settings:{name:'',target:2000,ws:'06:00',we:'22:00',chess:90,cstart:'17:00',cap:180}};
+let S;
+try { S = JSON.parse(localStorage.getItem('planner') || 'null'); } catch(e) { S = null; }
+S = Object.assign({}, D, S || {});
+S.settings = Object.assign({}, D.settings, S.settings);
+S.game = Object.assign({}, D.game, S.game); S.game.badges = S.game.badges || {}; S.game.log = S.game.log || [];
+if (!S.ratings.length) S.ratings = [{id:uid(), date:ds(new Date()), rating:+(S.settings.rating || 1825)}];
+const save = () => { try { localStorage.setItem('planner', JSON.stringify(S)); } catch(e) {} };
+const curRating = () => S.ratings.slice().sort((a,b)=>a.date.localeCompare(b.date)).pop().rating;
+
+let viewDate = ds(new Date());
+
+/* ---------- planning ---------- */
+function freeSlots(date, isToday){
+  const st = S.settings;
+  let ws = toMin(st.ws), we = toMin(st.we);
+  if (isToday){ const n = new Date(); ws = Math.max(ws, Math.ceil((n.getHours()*60+n.getMinutes())/15)*15); }
+  const cls = S.classes.filter(c => +c.day === parse(date).getDay()).map(c => [toMin(c.start), toMin(c.end)]).sort((a,b)=>a[0]-b[0]);
+  const slots = []; let cur = ws;
+  for (const [s,e] of cls){ if (s > cur) slots.push({s:cur, e:Math.min(s,we)}); cur = Math.max(cur, e); }
+  if (cur < we) slots.push({s:cur, e:we});
+  return slots.filter(x => x.e - x.s >= 10);
+}
+function place(slots, dur, after){
+  for (const sl of slots){
+    const start = Math.max(sl.s, after || 0);
+    if (sl.e - start >= dur){ sl.s = start + dur + BUFFER; return start; }
+  }
+  return null;
+}
+function placeAt(slots, start, dur){
+  for (let i = 0; i < slots.length; i++){
+    const sl = slots[i];
+    if (sl.s <= start && sl.e >= start + dur){
+      const parts = [{s:sl.s, e:start-BUFFER}, {s:start+dur+BUFFER, e:sl.e}].filter(x => x.e - x.s >= 10);
+      slots.splice(i, 1, ...parts); return true;
+    }
+  }
+  return false;
+}
+function buildPlan(upTo){
+  const todayStr = ds(new Date()); const result = {};
+  const pending = S.tasks.filter(t => !t.done).sort((a,b) => a.due.localeCompare(b.due));
+  const placed = new Set(); const nw = new Date(); const nowM = nw.getHours()*60+nw.getMinutes(); const trim = Math.ceil(nowM/15)*15;
+  let d = parse(todayStr); const end = parse(upTo);
+  while (d <= end){
+    const date = ds(d); const isT = date === todayStr;
+    const slots = freeSlots(date, isT); const blocks = [];
+    const L = isT ? (S.lock[date] || {}) : {};
+    const keep = b => { blocks.push(b); slots.forEach(sl => { if (sl.s < b.e + BUFFER && sl.e > b.s) sl.s = Math.max(sl.s, b.e + BUFFER); }); };
+    const tryLock = (id, dur, mk) => {
+      const l = L[id]; if (!l || l.e - l.s !== dur) return false;
+      if (l.s < trim){ if (l.e + 20 > nowM || (id === 'chess' && S.chessDone[date])){ keep(mk(l)); return true; } return false; }
+      if (placeAt(slots, l.s, dur)){ blocks.push(mk(l)); return true; }
+      return false;
+    };
+    const ch = +S.settings.chess;
+    if (ch > 0){
+      const mk = l => ({kind:'chess', id:'chess', title:'Chess training', s:l.s, e:l.e, done:!!S.chessDone[date]});
+      if (!tryLock('chess', ch, mk)){
+        let c = slots.map(x => ({...x})); let st = place(c, ch, toMin(S.settings.cstart));
+        if (st === null){ c = slots.map(x => ({...x})); st = place(c, ch, 0); }
+        if (st !== null){ slots.splice(0, slots.length, ...c); blocks.push(mk({s:st, e:st+ch})); }
+      }
+    }
+    let used = 0; const cap = +S.settings.cap;
+    const order = [...pending.filter(t => L[t.id]), ...pending.filter(t => !L[t.id])];
+    for (const t of order){
+      if (placed.has(t.id)) continue;
+      const dur = +t.min;
+      const mk = l => ({kind:'task', id:t.id, title:t.title, type:t.type, s:l.s, e:l.e, due:t.due, late:t.due < date});
+      if (tryLock(t.id, dur, mk)){ placed.add(t.id); used += dur; continue; }
+      if (used + dur > cap && used > 0) continue;
+      const st = place(slots, dur, 0);
+      if (st !== null){ placed.add(t.id); used += dur; blocks.push(mk({s:st, e:st+dur})); }
+    }
+    result[date] = blocks; d = addDays(d,1);
+  }
+  return {result, unplaced: pending.filter(t => !placed.has(t.id))};
+}
+function syncLocks(){
+  const today = ds(new Date()); const m = {};
+  (buildPlan(today).result[today] || []).forEach(b => { m[b.id] = {id:b.id, kind:b.kind, title:b.title, s:b.s, e:b.e}; });
+  S.lock = {[today]: m}; save();
+}
+
+/* ---------- helpers for stats ---------- */
+function streak(){
+  let d = new Date(), n = 0;
+  if (S.chessDone[ds(d)] !== true) d = addDays(d,-1);
+  while (S.chessDone[ds(d)] === true){ n++; d = addDays(d,-1); }
+  return n;
+}
+function spark(w, h){
+  const r = S.ratings.slice().sort((a,b)=>a.date.localeCompare(b.date));
+  if (r.length < 2) return '<div class="empty">Log your rating after each tournament to see your graph here.</div>';
+  const vals = r.map(x => x.rating); const lo = Math.min(...vals)-20, hi = Math.max(...vals)+20;
+  const pts = r.map((x,i) => [10 + i*(w-20)/(r.length-1), h-10 - (x.rating-lo)/(hi-lo)*(h-20)]);
+  return `<svg class="spark" viewBox="0 0 ${w} ${h}" role="img" aria-label="Rating graph"><polyline fill="none" stroke="var(--amber)" stroke-width="2.5" points="${pts.map(p=>p.join(',')).join(' ')}"/>${pts.map(p=>`<circle cx="${p[0]}" cy="${p[1]}" r="3.5" fill="var(--amber)"/>`).join('')}</svg>`;
+}
+
+/* ---------- render ---------- */
+function renderToday(){
+  const todayStr = ds(new Date()); const d = parse(viewDate);
+  $('datetxt').textContent = (viewDate === todayStr ? 'Today · ' : '') + DAYS[d.getDay()] + ', ' + short(viewDate);
+  $('prev').disabled = viewDate <= todayStr;
+  let rows = S.classes.filter(c => +c.day === d.getDay()).map(c => ({kind:'class', title:c.name, s:toMin(c.start), e:toMin(c.end)}));
+  let plan = {unplaced:[]};
+  if (viewDate >= todayStr){ plan = buildPlan(viewDate); rows = rows.concat(plan.result[viewDate] || []); }
+  rows.sort((a,b) => a.s - b.s);
+  const track = rows.filter(r => r.kind !== 'class');
+  const doneToday = S.tasks.filter(t => t.done && t.doneOn === viewDate);
+  const total = track.length + doneToday.length, dn = track.filter(r => r.done).length + doneToday.length;
+  $('progtxt').textContent = total ? dn + ' of ' + total + ' finished' : 'Nothing to track yet';
+  $('progbar').style.width = total ? (dn/total*100)+'%' : '0';
+  const n = new Date(), nowM = n.getHours()*60 + n.getMinutes();
+  $('schedule').innerHTML = rows.length ? rows.map(r => {
+    const sub = r.kind==='class' ? 'Class' : r.kind==='chess' ? 'Daily chess' : (r.type==='chess'?'Chess study':r.type==='college'?'College':'Task') + ' · due ' + short(r.due);
+    const isNow = viewDate===todayStr && r.s <= nowM && nowM < r.e;
+    const cls = r.kind + (r.late?' late':'') + (r.done?' done':'') + (isNow?' now':'');
+    const box = r.kind==='class' ? '<span></span>' : r.done ? '<span class="sub">✓ done</span>' : viewDate===todayStr ? `<div style="display:grid;gap:4px;justify-items:end"><button class="btn go" data-start="${r.id}">▶ Start</button>${r.kind==='task'?`<button class="btn ghost" data-manual="${r.id}">log, no XP</button>`:''}</div>` : '<span class="sub">planned</span>';
+    return `<div class="row ${cls}"><div class="time">${fmt(r.s)}<br><span class="sub">${fmt(r.e)}</span></div><div><div class="t">${esc(r.title)}${isNow?'<span class="tag" style="color:var(--amber)">now</span>':''}</div><div class="sub">${esc(sub)}${r.late?' · <span class="warn">overdue</span>':''}</div></div>${box}</div>`;
+  }).join('') : '<div class="empty">No classes or tasks for this day. Add some above or in the Timetable tab.</div>';
+  $('unplaced').innerHTML = plan.unplaced.length && viewDate === todayStr
+    ? `<div style="margin-top:8px"><div class="warn">Not enough free time for:</div>${plan.unplaced.map(t=>`<div class="sub">${esc(t.title)} · due ${short(t.due)}</div>`).join('')}<div class="sub">Raise “Max task time per day” in Settings.</div></div>` : '';
+  $('donelist').innerHTML = doneToday.length ? '<h2 style="margin-top:12px">Completed</h2>' + doneToday.map(t => `<div class="li"><span style="opacity:.75">✓ ${esc(t.title)}</span></div>`).join('') : '';
+}
+function renderSide(){
+  const r = curRating(), tg = +S.settings.target, base = S.ratings.slice().sort((a,b)=>a.date.localeCompare(b.date))[0].rating;
+  const pct = tg <= base ? 100 : Math.max(0, Math.min(100, (r-base)/(tg-base)*100));
+  const week = [...Array(7)].map((_,i) => addDays(new Date(), i-6));
+  const weekDone = week.filter(d => S.chessDone[ds(d)]).length;
+  const cut = ds(addDays(new Date(),-6));
+  const tasksWeek = S.tasks.filter(t => t.done && t.doneOn >= cut).length;
+  const pendingCount = S.tasks.filter(t => !t.done).length;
+  const ups = [
+    ...S.tasks.filter(t=>!t.done).map(t => ({n:t.title, d:t.due, k:'Deadline'})),
+    ...S.events.filter(e => e.date >= ds(new Date())).map(e => ({n:e.name, d:e.date, k:'Tournament'}))
+  ].sort((a,b)=>a.d.localeCompare(b.d)).slice(0,6);
+  $('side').innerHTML = `
+  <div class="stats">
+    <div class="card"><div class="sub">Chess streak</div><div class="big">${streak()}</div><div class="sub">day(s) in a row</div></div>
+    <div class="card"><div class="sub">This week</div><div class="big">${tasksWeek}</div><div class="sub">tasks done · ${pendingCount} pending</div></div>
+  </div>
+  ${gameCards()}
+  <div class="card"><h2>Rating goal</h2>
+    <div style="display:flex;justify-content:space-between;align-items:baseline"><span class="big">${r}</span><span class="sub">target ${tg}</span></div>
+    <div class="prog"><i style="width:${pct}%"></i></div>${spark(300,90)}</div>
+  <div class="card"><h2>Chess this week · ${weekDone}/7 days</h2>
+    <div class="bars">${week.map(d=>`<div><span class="${S.chessDone[ds(d)]?'on':''}"></span>${DAYS[d.getDay()][0]}</div>`).join('')}</div></div>
+  <div class="card"><h2>Coming up</h2>${ups.length ? ups.map(u => {
+    const l = daysTo(u.d); const when = l<0 ? `<span class="warn">${-l}d overdue</span>` : l===0 ? '<span class="warn">today</span>' : l+'d';
+    return `<div class="li"><div>${esc(u.n)}<span class="tag">${u.k}</span></div><div class="sub">${short(u.d)} · ${when}</div></div>`;}).join('') : '<div class="empty">Nothing coming up.</div>'}</div>`;
+}
+function renderTasks(){
+  const list = S.tasks.filter(t => !t.done).sort((a,b)=>a.due.localeCompare(b.due));
+  $('tasklist').innerHTML = list.length ? list.map(t => {
+    const l = daysTo(t.due); const tag = l<0 ? `<span class="warn">${-l} day(s) overdue</span>` : l===0 ? '<span class="warn">due today</span>' : l+' day(s) left';
+    return `<div class="li"><div><strong>${esc(t.title)}</strong><div class="sub">${t.min} min · ${esc(t.type)} · ${tag}</div></div><button class="btn ghost" data-del-task="${t.id}">Delete</button></div>`;
+  }).join('') : '<div class="empty">No pending tasks. Use Quick add on the Today tab.</div>';
+  const done = S.tasks.filter(t => t.done);
+  $('donetasks').innerHTML = done.length ? done.map(t => `<div class="li"><span style="opacity:.6;text-decoration:line-through">${esc(t.title)}</span><button class="btn ghost" data-del-task="${t.id}">Delete</button></div>`).join('') + '<button class="btn ghost" style="margin-top:8px" data-clear="1">Clear all completed</button>' : '<div class="empty">Nothing completed yet.</div>';
+}
+function renderClasses(){
+  const html = [1,2,3,4,5,6,0].map(day => {
+    const cs = S.classes.filter(c => +c.day === day).sort((a,b)=>toMin(a.start)-toMin(b.start));
+    if (!cs.length) return '';
+    return `<div class="sub" style="margin-top:8px;font-weight:600">${DAYS[day]}</div>` + cs.map(c => `<div class="li"><div>${esc(c.name)} <span class="sub">${fmt(toMin(c.start))} – ${fmt(toMin(c.end))}</span></div><button class="btn ghost" data-del-class="${c.id}">Delete</button></div>`).join('');
+  }).join('');
+  $('classlist').innerHTML = html || '<div class="empty">No classes yet. Add your first one above.</div>';
+}
+function renderChess(){
+  $('ratingchart').innerHTML = `<div class="big">${curRating()}</div><div class="sub" style="margin-bottom:6px">current · target ${S.settings.target}</div>` + spark(420,120);
+  $('ratinglist').innerHTML = S.ratings.slice().sort((a,b)=>b.date.localeCompare(a.date)).map(x => `<div class="li"><div><strong>${x.rating}</strong> <span class="sub">${short(x.date)}</span></div>${S.ratings.length>1?`<button class="btn ghost" data-del-rating="${x.id}">Delete</button>`:''}</div>`).join('');
+  const ev = S.events.slice().sort((a,b)=>a.date.localeCompare(b.date));
+  $('eventlist').innerHTML = ev.length ? ev.map(e => { const l = daysTo(e.date);
+    return `<div class="li"><div><strong>${esc(e.name)}</strong><div class="sub">${short(e.date)} · ${l<0?'finished':l===0?'today':l+' day(s) to go'}</div></div><button class="btn ghost" data-del-event="${e.id}">Delete</button></div>`; }).join('') : '<div class="empty">No tournaments added yet.</div>';
+}
+function renderHeader(){
+  const st = S.settings;
+  $('title').textContent = st.name ? st.name + '’s Planner' : 'My Planner';
+  $('rating').textContent = 'FIDE ' + curRating();
+  const g = S.game; $('lvltxt').textContent = 'Lv ' + level(g.xp); $('lvlbar').style.width = (g.xp % LV) / LV * 100 + '%'; $('xptxt').textContent = g.xp + ' XP';
+  $('today-label').textContent = new Date().toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+}
+function renderAll(){ syncLocks(); renderHeader(); renderToday(); renderSide(); renderTasks(); renderClasses(); renderChess(); }
+
+/* ---------- game, sessions, reminders ---------- */
+const LV = 250;
+const level = xp => Math.floor(xp/LV)+1;
+const BADGES = [
+ ['first','First move','Finish your first focus session',g=>g.sessions>=1],
+ ['clean','Laser focus','A session with zero distractions',g=>g.clean>=1],
+ ['s3','Hat-trick','3-day chess streak',g=>g.best>=3],
+ ['s7','Week warrior','7-day chess streak',g=>g.best>=7],
+ ['s30','Grandmaster habit','30-day chess streak',g=>g.best>=30],
+ ['ten','Ten sessions','Finish 10 focus sessions',g=>g.sessions>=10],
+ ['mins','Deep worker','300 focused minutes',g=>g.mins>=300],
+ ['lv5','Level 5','Reach level 5',g=>level(g.xp)>=5]
+];
+function gameCards(){
+  const g = S.game; g.best = Math.max(g.best, streak());
+  const log = g.log.slice(0,4);
+  return `<div class="card"><h2>Level ${level(g.xp)} · ${g.xp} XP</h2><div class="prog"><i style="width:${(g.xp%LV)/LV*100}%"></i></div><div class="sub">${LV-g.xp%LV} XP to next level · ${g.sessions} sessions · ${g.mins} focused min</div></div>
+  <div class="card"><h2>Badges · ${Object.keys(g.badges).length}/${BADGES.length}</h2><div class="badges">${BADGES.map(b=>`<div class="bdg ${g.badges[b[0]]?'on':''}"><strong>${b[1]}</strong><br>${b[2]}</div>`).join('')}</div></div>
+  ${log.length?`<div class="card"><h2>Recent sessions</h2>${log.map(l=>`<div class="li"><div>${esc(l.title)}<div class="sub">${esc(l.type||l.kind)} · ${l.mins} min · ${l.dist} distraction(s)</div></div><strong>+${l.xp}</strong></div>`).join('')}</div>`:''}`;
+}
+function checkBadges(){
+  const g = S.game;
+  BADGES.forEach(b => { if (!g.badges[b[0]] && b[3](g)){ g.badges[b[0]] = ds(new Date()); notify('Badge unlocked: ' + b[1], b[2]); } });
+}
+let AC;
+function beep(){ try{ AC = AC || new (window.AudioContext||window.webkitAudioContext)(); AC.resume(); const o = AC.createOscillator(), g = AC.createGain(); o.connect(g); g.connect(AC.destination); o.frequency.value = 880; g.gain.value = .15; o.start(); o.stop(AC.currentTime+.3); }catch(e){} }
+function toast(title, body, action){
+  const el = document.createElement('div'); el.className = 'toast';
+  el.innerHTML = `<strong>${esc(title)}</strong><div class="sub">${esc(body||'')}</div>`;
+  if (action){ const b = document.createElement('button'); b.className = 'btn'; b.style.marginTop = '6px'; b.textContent = action.label; b.onclick = ev => { ev.stopPropagation(); action.fn(); el.remove(); }; el.appendChild(b); }
+  el.onclick = () => el.remove();
+  $('toasts').appendChild(el); setTimeout(() => el.remove(), 25000);
+}
+function notify(title, body, action){
+  toast(title, body, action); beep();
+  try{ navigator.vibrate && navigator.vibrate([200,100,200]); }catch(e){}
+  try{ if ('Notification' in window && Notification.permission === 'granted') new Notification(title, {body}); }catch(e){}
+}
+const notifStatus = () => { $('notif-status').textContent = !('Notification' in window) ? 'System notifications are not supported here. In-app alerts, sound and vibration still work.' : 'System notifications: ' + Notification.permission; };
+$('en-notif').onclick = async () => { try{ if ('Notification' in window) await Notification.requestPermission(); }catch(e){} notifStatus(); notify('Reminders are on', 'You will be alerted before each block, at its start and at its end.'); };
+notifStatus();
+
+let WL;
+async function wakeOn(){ try{ WL = await navigator.wakeLock.request('screen'); }catch(e){} }
+function wakeOff(){ try{ WL && WL.release(); }catch(e){} WL = null; }
+
+function nextCheck(a, from){ const iv = (a.dur >= 40 ? 15 : Math.max(5, a.dur/2)) * 6e4; const t = from + iv; return t <= a.start + (a.dur-2)*6e4 ? t : 0; }
+function startSession(id){
+  if (S.active){ showFocus(); return; }
+  const b = (S.lock[ds(new Date())] || {})[id]; if (!b) return;
+  const a = {id, kind:b.kind, title:b.title, dur:b.e-b.s, start:Date.now(), dist:0, checks:0, next:0, await:0, over:false};
+  a.next = nextCheck(a, a.start); S.active = a; save(); wakeOn(); beep(); showFocus();
+  toast('Session started', 'Stay on it for ' + a.dur + ' minutes. I will check in on you.');
+}
+function manualDone(id){
+  const t = S.tasks.find(x => x.id === id);
+  if (!t || !confirm('Mark done without a focus session? You will earn no XP.')) return;
+  t.done = true; t.doneOn = ds(new Date()); save(); renderAll();
+}
+function showFocus(){ window._fs = ''; window._part = false; $('focus').hidden = false; drawFocus(); }
+function panelHTML(st, a){
+  const chess = a.kind === 'chess';
+  if (st === 'run') return '<div class="sub" style="width:100%">Finishing unlocks when the timer ends. Be honest, it is your game.</div><button class="btn red" data-act="dist">I got distracted</button><button class="btn ghost" data-act="quit">Give up</button>';
+  if (st === 'check') return '<h2 style="width:100%;margin:0">Still focused?</h2><button class="btn go" data-act="yes">Yes, locked in</button><button class="btn red" data-act="no">I drifted</button>';
+  if (window._part) return '<div class="sub" style="width:100%">How many more minutes does it need?</div>' + [15,30,45,60].map(n => `<button class="btn" data-act="more" data-n="${n}">${n} min</button>`).join('');
+  return (chess ? '<label style="width:100%;max-width:260px;margin:0 auto">What did you train?<select id="f-type"><option>Tactics</option><option>Endgames</option><option>Openings</option><option>Game analysis</option><option>Playing games</option><option>Other</option></select></label>' : '') +
+    '<h2 style="width:100%;margin:0">How did it go?</h2><button class="btn go" data-act="full">' + (chess ? 'Completed it' : 'Finished the task') + '</button>' +
+    (chess ? '' : '<button class="btn amber" data-act="part">Need more time</button>') + '<button class="btn ghost" data-act="none">Didn’t get it done</button>';
+}
+function drawFocus(){
+  const a = S.active; if (!a){ $('focus').hidden = true; return; }
+  const now = Date.now(), el = now - a.start, left = Math.max(0, a.dur*6e4 - el);
+  $('ftime').textContent = String(Math.floor(left/6e4)).padStart(2,'0') + ':' + String(Math.floor(left%6e4/1000)).padStart(2,'0');
+  $('fbar').style.width = Math.min(100, el/(a.dur*6e4)*100) + '%';
+  $('fkind').textContent = a.kind === 'chess' ? 'Chess training' : 'Focus session';
+  $('ftitle').textContent = a.title;
+  const st = a.over ? 'end' : a.await ? 'check' : 'run';
+  $('fstat').textContent = st === 'check' ? 'Answer within ' + Math.max(0, Math.ceil((a.await-now)/1000)) + 's' : 'Check-ins passed: ' + a.checks + ' · Distractions: ' + a.dist;
+  if (window._fs !== st){ window._fs = st; $('fpanel').innerHTML = panelHTML(st, a); }
+}
+function sessionTick(){
+  const a = S.active; if (!a) return;
+  const now = Date.now();
+  if (now >= a.start + a.dur*6e4 && !a.over){ a.over = true; a.await = 0; save(); notify('Time’s up!', 'Tell me how the session went to collect your XP.'); }
+  if (!a.over){
+    if (a.await && now > a.await){ a.dist++; a.await = 0; a.next = nextCheck(a, now); save(); notify('Missed check-in', 'Counted as a distraction. Refocus!'); }
+    else if (a.next && !a.await && now >= a.next){ a.await = now + 60000; save(); notify('Focus check', 'Still on “' + a.title + '”? Answer within a minute.'); }
+  }
+  drawFocus();
+}
+function finishSession(result, more){
+  const a = S.active; if (!a) return;
+  const g = S.game, today = ds(new Date()), chess = a.kind === 'chess';
+  const mins = Math.max(1, Math.min(a.dur, Math.round((Date.now() - a.start)/6e4)));
+  const focus = Math.max(.3, 1 - .25*a.dist);
+  let xp = Math.round(mins * focus * (result === 'none' ? .3 : 1));
+  if (!a.dist && result !== 'none') xp += 20;
+  const type = chess ? ($('f-type') ? $('f-type').value : 'Chess') : '';
+  if (chess){ if (result === 'full'){ S.chessDone[today] = true; const st = streak(); g.best = Math.max(g.best, st); xp += Math.min(st,7)*5; } }
+  else { const t = S.tasks.find(x => x.id === a.id); if (t){ if (result === 'full'){ t.done = true; t.doneOn = today; } else if (result === 'part') t.min = more; } }
+  const lv0 = level(g.xp); g.xp += xp;
+  if (result !== 'none'){ g.sessions++; g.mins += mins; if (!a.dist) g.clean++; }
+  g.log.unshift({date:today, title:a.title, kind:a.kind, type, mins, xp, dist:a.dist, result}); g.log = g.log.slice(0,30);
+  S.active = null; wakeOff(); $('focus').hidden = true; window._part = false;
+  toast(result === 'none' ? 'Session logged' : 'Session complete', '+' + xp + ' XP' + (a.dist || result === 'none' ? '' : ' · zero-distraction bonus') + (chess && result === 'full' ? ' · chess streak ' + streak() : ''));
+  if (level(g.xp) > lv0) notify('Level up!', 'You reached level ' + level(g.xp));
+  checkBadges(); save(); renderAll();
+}
+$('fpanel').onclick = e => {
+  const b = e.target.closest('[data-act]'); const a = S.active; if (!b || !a) return;
+  const act = b.dataset.act;
+  if (act === 'dist'){ a.dist++; save(); toast('Noted', 'Distractions: ' + a.dist + '. Back to it.'); drawFocus(); }
+  else if (act === 'yes' || act === 'no'){ if (act === 'yes') a.checks++; else a.dist++; a.await = 0; a.next = nextCheck(a, Date.now()); save(); drawFocus(); }
+  else if (act === 'quit'){ if (confirm('Give up? You will earn no XP for this session.')){ S.active = null; wakeOff(); save(); $('focus').hidden = true; renderAll(); } }
+  else if (act === 'part'){ window._part = true; window._fs = ''; drawFocus(); }
+  else if (act === 'more') finishSession('part', +b.dataset.n);
+  else if (act === 'full' || act === 'none') finishSession(act);
+};
+function remindTick(){
+  const today = ds(new Date()); if (S.fired.date !== today) S.fired = {date:today, k:{}};
+  const n = new Date(), m = n.getHours()*60 + n.getMinutes() + n.getSeconds()/60;
+  const items = S.classes.filter(c => +c.day === n.getDay()).map(c => ({id:'c'+c.id, kind:'class', title:c.title || c.name, s:toMin(c.start), e:toMin(c.end)})).concat(Object.values(S.lock[today] || {}));
+  const fire = (key, t, b, ac) => { if (S.fired.k[key]) return; S.fired.k[key] = 1; save(); notify(t, b, ac); };
+  for (const it of items){
+    if (it.kind === 'chess' && S.chessDone[today] === true) continue;
+    if (S.active && S.active.id === it.id) continue;
+    for (const lead of [10,5]) if (m >= it.s-lead && m < it.s-lead+3) fire(it.id+'p'+lead, it.title + ' starts in ' + lead + ' min', it.kind === 'class' ? 'Get ready for class.' : 'Wrap up what you are doing and get set.');
+    if (it.kind === 'class') continue;
+    if (m >= it.s && m < it.s+3) fire(it.id+'s', 'Start now: ' + it.title, 'Open a focus session to earn XP.', {label:'▶ Start', fn:() => startSession(it.id)});
+    if (m >= it.e && m < it.e+4) fire(it.id+'e', 'Time’s up for ' + it.title, 'Did you finish it, or did you get distracted? Start a session or log it.');
+  }
+}
+setInterval(() => { if (S.active) sessionTick(); }, 1000);
+setInterval(() => { remindTick(); syncLocks(); if (viewDate === ds(new Date())) renderToday(); }, 20000);
+document.addEventListener('visibilitychange', () => { if (!document.hidden){ if (S.active){ sessionTick(); wakeOn(); } remindTick(); } });
+
+/* ---------- events ---------- */
+document.querySelectorAll('nav button').forEach(b => b.onclick = () => {
+  document.querySelectorAll('nav button').forEach(x => x.setAttribute('aria-selected', x===b));
+  document.querySelectorAll('section').forEach(s => s.classList.toggle('on', s.id === b.dataset.tab));
+});
+$('prev').onclick = () => { viewDate = ds(addDays(parse(viewDate),-1)); renderToday(); };
+$('next').onclick = () => { viewDate = ds(addDays(parse(viewDate),1)); renderToday(); };
+$('qform').onsubmit = e => {
+  e.preventDefault();
+  S.tasks.push({id:uid(), title:$('q-title').value.trim(), due:$('q-due').value, min:+$('q-min').value, type:$('q-type').value, done:false});
+  save(); $('q-title').value = ''; renderAll();
+};
+$('classform').onsubmit = e => {
+  e.preventDefault();
+  if (toMin($('c-end').value) <= toMin($('c-start').value)){ alert('End time must be after start time.'); return; }
+  S.classes.push({id:uid(), name:$('c-name').value.trim(), day:$('c-day').value, start:$('c-start').value, end:$('c-end').value});
+  save(); $('c-name').value = ''; renderAll();
+};
+$('rform').onsubmit = e => {
+  e.preventDefault();
+  S.ratings.push({id:uid(), date:$('r-date').value, rating:+$('r-val').value});
+  if ($('r-target').value) S.settings.target = +$('r-target').value;
+  save(); $('r-val').value = ''; renderAll();
+};
+$('eform').onsubmit = e => {
+  e.preventDefault();
+  S.events.push({id:uid(), name:$('e-name').value.trim(), date:$('e-date').value});
+  save(); $('e-name').value = ''; renderAll();
+};
+document.body.addEventListener('click', e => {
+  const t = e.target.dataset;
+  if (t.delTask) S.tasks = S.tasks.filter(x => x.id !== t.delTask);
+  else if (t.delClass) S.classes = S.classes.filter(x => x.id !== t.delClass);
+  else if (t.delRating) S.ratings = S.ratings.filter(x => x.id !== t.delRating);
+  else if (t.delEvent) S.events = S.events.filter(x => x.id !== t.delEvent);
+  else if (t.clear) S.tasks = S.tasks.filter(x => !x.done);
+  else if (t.start){ startSession(t.start); return; }
+  else if (t.manual){ manualDone(t.manual); return; }
+  else return;
+  save(); renderAll();
+});
+const fields = {name:'s-name', ws:'s-ws', we:'s-we', chess:'s-chess', cstart:'s-cstart', cap:'s-cap'};
+for (const k in fields) $(fields[k]).value = S.settings[k];
+const saveSettings = () => {
+  for (const k in fields) if ($(fields[k]).value !== '') S.settings[k] = $(fields[k]).value;
+  save(); renderAll();
+  $('savemsg').textContent = 'Saved ✓';
+  clearTimeout(window._sm); window._sm = setTimeout(() => $('savemsg').textContent = '', 2500);
+};
+$('setform').onsubmit = e => { e.preventDefault(); saveSettings(); };
+$('setform').onchange = saveSettings;
+$('exp').onclick = () => {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([JSON.stringify(S)], {type:'application/json'}));
+  a.download = 'planner-backup-' + ds(new Date()) + '.json'; a.click();
+};
+$('imp').onchange = e => {
+  const f = e.target.files[0]; if (!f) return;
+  f.text().then(t => { try { const x = JSON.parse(t); S = Object.assign({}, D, x); save(); location.reload(); } catch(err) { alert('That file is not a valid backup.'); } });
+};
+$('q-due').value = $('r-date').value = $('e-date').value = ds(new Date());
+$('r-target').value = S.settings.target;
+renderAll();
+if (S.active) showFocus();
+</script>
+</body>
+</html>
